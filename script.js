@@ -19,6 +19,11 @@ const POSTS = [
 ];
 
 /* =====================================================
+   المدارس — أضف أو احذف اسم مدرسة من هنا
+   ===================================================== */
+const SCHOOLS = ["مدرسة آمون (هيئة قناة السويس)","مدرسة التحرير","مدرسة الشهيد إبراهيم الرفاعي","مدرسة ابن خلدون","مدرسة بورسعيد الدولية","مدرسة الحديدي والنادي","مدرسة الشهيد أحمد حمدي","مدرسة الزهراء الرسمية لغات","مدرسة أبو بكر الرسمية لغات","مدرسة القناة ع بنات","مدرسة القناة ع بنين","مدرسة الخلفاء الراشدين ع بنون"];
+
+/* =====================================================
    2) معرض الصور — ضع صورك في فولدر images وأضف سطر لكل صورة
    ===================================================== */
 const GALLERY = [
@@ -61,16 +66,41 @@ function renderPosts(q = '') {
 }
 document.getElementById('search').addEventListener('input', e => renderPosts(e.target.value));
 
-/* ---------- Gallery + Lightbox ---------- */
-const gg = document.getElementById('gallery-grid');
-gg.innerHTML = GALLERY.map((g, i) => `<div class="g reveal" data-i="${i}">📷${g.src ? `<img src="${esc(g.src)}" alt="${esc(g.caption)}" loading="lazy" onerror="this.remove()">` : ''}<span>${esc(g.caption)}</span></div>`).join('');
+/* ---------- Schools ---------- */
+document.getElementById('schoolsGrid').innerHTML = SCHOOLS.map((s, i) =>
+  `<div class="sc reveal"><i>${String(i + 1).padStart(2, '0')}</i><span>${esc(s)}</span></div>`).join('');
+
+/* ---------- Gallery marquee + Lightbox ---------- */
+const mi = (g, i) => `<div class="mi" data-i="${i}"><img src="${esc(g.src)}" alt="${esc(g.caption)}" loading="lazy"><span>${esc(g.caption)}</span></div>`;
+const rowA = GALLERY.map(mi).join(''), rowB = GALLERY.map(mi).reverse().join('');
+document.getElementById('trackA').innerHTML = rowA + rowA;
+document.getElementById('trackB').innerHTML = rowB + rowB;
 const lb = document.getElementById('lb');
-gg.addEventListener('click', e => {
-  const el = e.target.closest('.g'); if (!el) return;
-  const g = GALLERY[el.dataset.i]; if (!g.src || !el.querySelector('img')) return;
+document.getElementById('gallery').addEventListener('click', e => {
+  const el = e.target.closest('.mi'); if (!el) return;
+  const g = GALLERY[el.dataset.i];
   document.getElementById('lbImg').src = g.src; document.getElementById('lbCap').textContent = g.caption; lb.classList.add('open');
 });
 lb.addEventListener('click', () => lb.classList.remove('open'));
+
+/* ---------- Rotating word in hero ---------- */
+const rot = document.getElementById('rot'), words = ['يفكّر', 'يناقش', 'يحترم الاختلاف', 'يشارك'];
+let wi = 0;
+setInterval(() => {
+  rot.classList.add('out');
+  setTimeout(() => { wi = (wi + 1) % words.length; rot.textContent = words[wi]; rot.classList.remove('out'); }, 350);
+}, 2400);
+
+/* ---------- 3D tilt on cards ---------- */
+let tiltEl = null;
+document.addEventListener('mousemove', e => {
+  const el = e.target.closest('.card,.post,.member,.sc,.step');
+  if (tiltEl && tiltEl !== el) tiltEl.style.transform = '';
+  tiltEl = el; if (!el) return;
+  const r = el.getBoundingClientRect(), x = (e.clientX - r.left) / r.width - .5, y = (e.clientY - r.top) / r.height - .5;
+  el.style.transform = `perspective(800px) rotateY(${x * -8}deg) rotateX(${y * 8}deg) translateY(-6px)`;
+});
+document.addEventListener('mouseleave', () => { if (tiltEl) tiltEl.style.transform = ''; });
 
 /* ---------- Progress bar + back to top ---------- */
 const bar = document.getElementById('progress'), toTop = document.getElementById('totop');
